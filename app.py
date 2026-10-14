@@ -47,6 +47,16 @@ st.markdown(
   .stTextInput input {height:50px; font-size:17px;}
   .stFormSubmitButton button, .stButton button {width:100%; height:52px; font-size:17px; font-weight:800; border-radius:12px;}
 
+  .nf {background:#FFF5F5; border:1.5px solid #F8C9CB; border-radius:18px; padding:18px 18px 16px; margin-top:14px;}
+  .nf .h {display:flex; align-items:center; gap:8px; color:#D93A40; font-weight:800; font-size:17px;}
+  .nf .h i {font-style:normal; width:22px; height:22px; border-radius:50%; background:#E5484D; color:#fff; display:inline-flex; align-items:center; justify-content:center; font-size:14px;}
+  .nf p {margin:10px 0 0; font-size:14px; line-height:1.6; color:#4B5563;}
+  .nf ul {margin:10px 0 0; padding-left:18px; font-size:13.5px; line-height:1.7; color:#4B5563;}
+  .nf b {color:#1F2328;}
+  .warn {display:flex; gap:10px; align-items:flex-start; background:#FFF8E6; border:1px solid #F5DFA6; border-radius:14px; padding:12px 14px; margin-top:16px;}
+  .warn i {font-style:normal; font-size:18px; line-height:1.2;}
+  .warn div {font-size:13px; line-height:1.6; color:#5B4A1F;}
+  .warn b {color:#3D2F0A;}
   .note {font-size:12px !important; color:#9AA4AE; text-align:center; line-height:1.6; margin-top:20px;}
 </style>
 """,
@@ -133,6 +143,11 @@ def load_rows():
     return ws.get_all_values()[HEADER_ROWS:]
 
 
+WARN_HTML = (
+    '<div class="warn"><i>⚠️</i><div><b>배달의민족 공식 영업담당자는 현금·금품을 요구하지 않습니다.</b><br>'
+    '가입비·수수료 명목의 현금이나 개인 계좌 입금, 선물 등을 요구받으면 상담을 즉시 멈추고 신고해주세요.</div></div>'
+)
+
 # 시연용 테스트 계정 — 시트와 무관, 카드에 '테스트 계정'으로 표시
 TEST_ACCOUNT = ("현빈", "123456")
 TEST_PHOTO = ("data:image/svg+xml;utf8,"
@@ -203,6 +218,10 @@ def render_card(d: dict):
   .none {{color:#E5484D;}}
   .stamp {{background:#E6F8F7; padding:14px 20px; font-size:13px; color:#1A9C97; display:flex; justify-content:space-between; align-items:center;}}
   .stamp b {{font-variant-numeric:tabular-nums; font-size:15px;}}
+  .warn {{display:flex; gap:10px; align-items:flex-start; background:#FFF8E6; border:1px solid #F5DFA6; border-radius:14px; padding:12px 14px; margin:0 4px 12px;}}
+  .warn i {{font-style:normal; font-size:18px; line-height:1.2;}}
+  .warn div {{font-size:13px; line-height:1.6; color:#5B4A1F;}}
+  .warn b {{color:#3D2F0A;}}
   .foot {{color:#6B7280; font-size:12px; line-height:1.6; text-align:center; margin:0 8px;}}
 </style>
 <div class="card">
@@ -219,6 +238,7 @@ def render_card(d: dict):
   </div>
   <div class="stamp"><span>실시간 조회 시각</span><b id="clock"></b></div>
 </div>
+<div class="warn"><i>⚠️</i><div><b>배달의민족 공식 영업담당자는 현금·금품을 요구하지 않습니다.</b><br>가입비·수수료 명목의 현금이나 개인 계좌 입금, 선물 등을 요구받으면 상담을 즉시 멈추고 신고해주세요.</div></div>
 <p class="foot">시각이 계속 흐르고 상단 표시가 움직이면 실시간 조회 화면이에요.<br>캡처 이미지는 확인 화면으로 인정되지 않아요.</p>
 <script>
   const p = n => String(n).padStart(2, "0");
@@ -228,7 +248,7 @@ def render_card(d: dict):
   t(); setInterval(t, 1000);
 </script>
 """,
-        height=600,
+        height=730,
     )
 
 
@@ -287,9 +307,18 @@ if go:
             if ss.fails >= MAX_FAILS:
                 ss.fails, ss.locked_until = 0, time.time() + LOCK_SEC
             time.sleep(0.8)
-            st.error("일치하는 영업담당자가 없습니다.\n\n이름과 매니저 등록번호를 다시 확인해주세요.")
+            st.markdown(
+                '<div class="nf"><div class="h"><i>!</i>등록된 영업담당자가 아닙니다</div>'
+                '<p>입력하신 <b>이름</b>과 <b>매니저 등록번호</b>가 일치하는 '
+                '배달의민족 공식 협력사 영업담당자를 찾을 수 없습니다.</p>'
+                '<ul><li>이름·번호에 오타가 없는지 다시 확인해주세요.</li>'
+                '<li>정확히 입력했는데도 조회되지 않으면 <b>공식 영업담당자로 확인되지 않은 것</b>이므로 '
+                '상담·계약·서명을 진행하지 마세요.</li></ul></div>',
+                unsafe_allow_html=True,
+            )
 
 st.markdown(
+    WARN_HTML +
     '<div class="note">조회 결과가 없거나 의심스러우면 상담을 멈추고<br>배민외식업광장 고객센터(1600-0987)로 문의해주세요.</div>',
     unsafe_allow_html=True,
 )
