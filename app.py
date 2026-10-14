@@ -21,6 +21,7 @@ st.markdown(
     """
 <style>
   #MainMenu, header, footer, [data-testid="stToolbar"] {visibility: hidden; height: 0;}
+  .element-container:has(iframe[height="0"]) {display:none;}
   .stApp {background: linear-gradient(180deg, #E6F8F7 0px, #F4F6F7 360px);}
   .block-container {max-width: 440px; padding-top: 1rem; padding-bottom: 2rem;}
   .brand {display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;}
@@ -48,6 +49,39 @@ st.markdown(
 """,
     unsafe_allow_html=True,
 )
+
+
+# Streamlit Cloud 호스트 셸 우하단 배지(Manage app·제작자 프로필) 숨김 — dsm-masterbook-v7과 같은 방식
+components.html("""
+<script>
+(function(){
+  function hideHostBadges(){
+    try{
+      var tw = window.top, td = tw.document;
+      if(!td.getElementById('rv-hide-badges')){
+        var st = td.createElement('style'); st.id = 'rv-hide-badges';
+        st.textContent = '[data-testid="manage-app-button"],[data-testid="appCreatorAvatar"],'
+          + '[class*="viewerBadge"],[class*="profileBadge"],[class*="creatorBadge"]'
+          + '{display:none !important;visibility:hidden !important}';
+        (td.head || td.documentElement).appendChild(st);
+      }
+      td.querySelectorAll('body *').forEach(function(el){
+        if(el.tagName === 'IFRAME') return;
+        var cs = tw.getComputedStyle(el);
+        if(cs.position === 'fixed' && el.offsetWidth > 0 && el.offsetWidth < 320 && el.offsetHeight < 320){
+          var r = el.getBoundingClientRect();
+          if(r.bottom > tw.innerHeight - 160 && r.right > tw.innerWidth - 260){
+            el.style.setProperty('display','none','important');
+          }
+        }
+      });
+    }catch(e){}
+  }
+  [400,1200,3000,6000,12000,25000].forEach(function(t){setTimeout(hideHostBadges,t)});
+  try{ var mo = new MutationObserver(hideHostBadges); mo.observe(window.top.document.body,{childList:true,subtree:true}); setTimeout(function(){mo.disconnect()},60000); }catch(e){}
+})();
+</script>
+""", height=0)
 
 
 def _secret(key, default=None):
