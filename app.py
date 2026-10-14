@@ -130,7 +130,19 @@ def load_rows():
     return ws.get_all_values()[HEADER_ROWS:]
 
 
+# 시연용 테스트 계정 — 시트와 무관, 카드에 '테스트 계정'으로 표시
+TEST_ACCOUNT = ("현빈", "123456")
+TEST_PHOTO = ("data:image/svg+xml;utf8,"
+              "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 88 110'>"
+              "<rect width='88' height='110' fill='%23E6F8F7'/>"
+              "<circle cx='44' cy='42' r='18' fill='%232AC1BC'/>"
+              "<path d='M10 110c0-22 15-36 34-36s34 14 34 36z' fill='%232AC1BC'/></svg>")
+
+
 def lookup(name: str, manager_no: str):
+    if norm(name) == norm(TEST_ACCOUNT[0]) and norm_no(manager_no) == norm_no(TEST_ACCOUNT[1]):
+        return {"company": "배민 테스트 협력사", "name": TEST_ACCOUNT[0], "email": "test@example.com",
+                "phone": "010-0000-0000", "edu_date": "2026-10-01", "photo": TEST_PHOTO, "test": "1"}
     rows = load_rows()
     if rows is None:  # 미리보기 모드
         if manager_no.strip() == "0000":
@@ -149,7 +161,10 @@ def lookup(name: str, manager_no: str):
 
 
 def render_card(d: dict):
-    e = {k: html.escape(v or "") for k, v in d.items()}
+    e = {k: html.escape(str(v or "")) for k, v in d.items()}
+    e.setdefault("photo", "")
+    photo = f'<img class="pimg" src="{e["photo"]}" alt="">' if e["photo"] else "사진"
+    badge = "테스트 계정 (시연용)" if d.get("test") else "등록 확인됨"
     tel = re.sub(r"[^0-9+]", "", d.get("phone") or "")
     edu = (f'<span class="edu">{e["edu_date"]}<span class="chk">수료</span></span>'
            if d.get("edu_date") else '<span class="none">미수료</span>')
@@ -169,7 +184,8 @@ def render_card(d: dict):
   .dot {{width:8px; height:8px; border-radius:50%; background:#fff; animation:pulse 1.2s ease-in-out infinite;}}
   @keyframes pulse {{0%,100% {{opacity:1; transform:scale(1);}} 50% {{opacity:.3; transform:scale(.7);}}}}
   .profile {{display:flex; gap:16px; padding:20px; align-items:center; border-bottom:1px solid #E5E7EB;}}
-  .photo {{width:88px; height:110px; border-radius:12px; background:#F4F6F7; border:1.5px dashed #CBD2D9; display:flex; align-items:center; justify-content:center; color:#9AA4AE; font-size:13px; flex:none;}}
+  .pimg {{width:100%; height:100%; object-fit:cover; border-radius:10px; display:block;}}
+  .photo {{overflow:hidden; width:88px; height:110px; border-radius:12px; background:#F4F6F7; border:1.5px dashed #CBD2D9; display:flex; align-items:center; justify-content:center; color:#9AA4AE; font-size:13px; flex:none;}}
   .company {{font-size:14px; color:#6B7280; font-weight:700;}}
   .name {{font-size:26px; font-weight:800; margin-top:4px; letter-spacing:-.5px;}}
   .role {{font-size:13px; color:#1A9C97; font-weight:700; margin-top:6px;}}
@@ -188,8 +204,8 @@ def render_card(d: dict):
 </style>
 <div class="card">
   <div class="top"><div class="org">배달의민족</div><div class="title">협력사 영업담당자</div>
-    <div class="badge"><span class="dot"></span>등록 확인됨</div></div>
-  <div class="profile"><div class="photo">사진</div>
+    <div class="badge"><span class="dot"></span>{badge}</div></div>
+  <div class="profile"><div class="photo">{photo}</div>
     <div><div class="company">{e["company"]}</div><div class="name">{e["name"]}</div>
     <div class="role">배민 공식 협력사 영업담당자</div></div></div>
   <div class="rows">
