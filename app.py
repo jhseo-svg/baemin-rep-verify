@@ -4,9 +4,11 @@
 - 원본 시트 ID·gid는 st.secrets(sheet_id, sheet_gid)에서 읽는다 (A 협력사명, B 매니저등록번호, C 담당자명, D E메일, E 휴대폰, F 공정영업 수료일)
 - 서비스계정(st.secrets["gcp_service_account"])이 없으면 예시 데이터로 도는 미리보기 모드
 """
+import base64
 import html
 import re
 import time
+from pathlib import Path
 
 import streamlit as st
 import streamlit.components.v1 as components
@@ -27,6 +29,7 @@ st.markdown(
   .brand {display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;}
   .brand b {display:flex; align-items:center; gap:8px; font-weight:800; color:#1A9C97; font-size:15px;}
   .brand b i {width:10px; height:10px; border-radius:50%; background:#2AC1BC; display:inline-block;}
+  .brand .logo {height:22px; width:auto; display:block;}
   .brand span {font-size:12px; color:#1A9C97; background:#fff; border:1px solid #BFEDEB; padding:4px 10px; border-radius:999px; font-weight:700;}
 
   .hero {position:relative; overflow:hidden; background:linear-gradient(135deg,#2AC1BC 0%,#1A9C97 100%); color:#fff;
@@ -234,7 +237,9 @@ ss.setdefault("fails", 0)
 ss.setdefault("locked_until", 0.0)
 ss.setdefault("hit", None)
 
-st.markdown('<div class="brand"><b><i></i>배달의민족</b><span>공식 협력사 확인</span></div>', unsafe_allow_html=True)
+_logo = base64.b64encode((Path(__file__).parent / "assets" / "woowa_logo.png").read_bytes()).decode()
+st.markdown(f'<div class="brand"><img class="logo" src="data:image/png;base64,{_logo}" alt="우아한형제들">'
+            '<span>공식 협력사 확인</span></div>', unsafe_allow_html=True)
 
 if ss.hit:
     render_card(ss.hit)
